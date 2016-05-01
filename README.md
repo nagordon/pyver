@@ -3,6 +3,7 @@ Version control for dummies
 
 ## TODO  
 * [x] Add filtering wildcards to make adding files easier. Ex ```pyver -f *.docx``` will keep only files with the extension ```docx```
+* [ ] Create GUI
 
 ## Why pyver?  
 The movtiation behind this attempt at creating a version control method is to create a very, very simple way to track the history of files. The work-flow of pyver is something I do anyway when working on something simple that uses binary files, especially ones that are linked through the software that is required to read them (eg CAD designs). I will create multiple directories, eg v1, v2 and copy the entire contents of my in-progress files in it that I want to preserve the history.
