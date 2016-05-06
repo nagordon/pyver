@@ -13,7 +13,7 @@ There are a couple of other excellent options, but have a steep learning curve a
 1) create some files  
 2) run pyver and make a copy of your files  
 3) make as many revisions as you want  
-4) if you want to revert back to an older revision, grab files out of the dated .pyver directories and put them in your current directory  
+4) if you want to revert back to an older revision, grab files out of the dated .archive directories and put them in your current directory  
 
 ### Criteria for design
 * Simplicity is your friend, obscurity is your enemy
@@ -54,7 +54,7 @@ The next is tree, which shows all the files in the repo.
 ```
 pyver tree
 
-./.pyver 
+./.archive 
 |  ./20160125210812 
 |   |     pyver.py  
 |   |     README.md  
