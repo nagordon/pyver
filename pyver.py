@@ -17,22 +17,22 @@ def pyver(user, comment, archivefiles):
     #user setting to create compressed zip files instead of copies of directories
     ziparchive = False    
     
-    if not os.path.isdir('.pyver'):
-        print('not currently a pyver repo, creating archive file directory .pyver')
-        os.mkdir('.pyver')
-        pyverlog = open(os.path.join('.pyver','pyver.log'),'a')
+    if not os.path.isdir('.archive'):
+        print('not currently a pyver repo, creating archive file directory .archive')
+        os.mkdir('.archive')
+        pyverlog = open(os.path.join('.archive','pyver.log'),'a')
         pyverlog.write('User   Timestamp   ArchiveSize   Comment   Files  \n')        
         try:
-            make_hidden('.pyver')
+            make_hidden('.archive')
         except:
-            print('failed to make .pyver hidden, which only works on windows')
+            print('failed to make .archive hidden, which only works on windows')
         
     n = datetime.datetime.now()
     timestamp = datetime.datetime.strftime(n, '%Y%m%d%H%M%S')  
-    archivepath = os.path.join('.pyver',timestamp)
+    archivepath = os.path.join('.archive',timestamp)
     
 	### was used to copy an entire directory but was wasteful
-    #shutil.copytree('.', archivepath, ignore=shutil.ignore_patterns('.pyver'))
+    #shutil.copytree('.', archivepath, ignore=shutil.ignore_patterns('.archive'))
 
     print('----files archived----')
     os.mkdir(archivepath)
@@ -54,7 +54,7 @@ def pyver(user, comment, archivefiles):
 
     archivefilesstr = '|'.join(archivefiles)
     ''' writes what files were archived'''
-    pyverlog = open(os.path.join('.pyver','pyver.log'),'a')
+    pyverlog = open(os.path.join('.archive','pyver.log'),'a')
     pyverlog.write('%s , %s , %ikb , %s , %s\n' % (user,
                                            timestamp,
                                            archivesize,
@@ -65,21 +65,21 @@ def pyver(user, comment, archivefiles):
 def make_hidden(hidedir):
     '''creates windows hidden folder
     can also use the windows command 
-    os.system("attrib +s +h "+.pyver)
+    os.system("attrib +s +h "+.archive)
     '''
     import ctypes
     FILE_ATTRIBUTE_HIDDEN = 0x02
     ret = ctypes.windll.kernel32.SetFileAttributesW(hidedir, FILE_ATTRIBUTE_HIDDEN)
     if ret:
-        print('.pyver set to Hidden')
+        print('.archive set to Hidden')
     else:  # return code of zero indicates failure, raise Windows error
         raise ctypes.WinError()
 
 def log():
     '''shows the contents of the pyver log file''' 
     
-    if os.path.exists(os.path.join('.pyver','pyver.log')):
-        pyverlog = open(os.path.join('.pyver','pyver.log'),'r')
+    if os.path.exists(os.path.join('.archive','pyver.log')):
+        pyverlog = open(os.path.join('.archive','pyver.log'),'r')
         for k in pyverlog.readlines():
             print(k)
         pyverlog.close()
@@ -193,14 +193,14 @@ if __name__=='__main__':
                     print('%s not found, skipping' % t)
                 else:
                     args.files.append(t)
-                #if '.pyver' in args.files:
-                #    args.files.remove('.pyver')
+                #if '.archive' in args.files:
+                #    args.files.remove('.archive')
                 
         else:
             #files = os.listdir(os.getcwd())  ## does not capture subdirectories
             args.files = all_files('.','.')  # add all files
-            #if '.pyver' in args.files:
-            #    args.files.remove('.pyver')
+            #if '.archive' in args.files:
+            #    args.files.remove('.archive')
         #user, archivefiles, comment = args.user, args.files, args.comment        
         #print(args.files)
         pyver(args.user, args.comment, args.files)      
