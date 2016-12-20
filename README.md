@@ -2,8 +2,13 @@
 Version control for dummies
 
 ## TODO  
-* [x] Add filtering wildcards to make adding files easier. Ex ```pyver -f *.docx``` will keep only files with the extension ```docx```
+* [ ] Append revision (_A) string on the end of an archive
+* [ ] Clean up file view in log, make new lines?
+* [ ] Add file watching with [watchdog](https://pypi.python.org/pypi/watchdog) , archive only changed files
+* [ ] File locking or read only attributing
+* [ ] Console colors with [colorama?](https://pypi.python.org/pypi/colorama)
 * [ ] Create GUI - https://github.com/chriskiehl/Gooey
+* [ ] Package with [flit](http://flit.readthedocs.io/en/latest/index.html)
 
 ## Why pyver?  
 The movtiation behind pyver, which is to creating a version control method which is very, very simple to track the history of files. The work-flow of pyver is something I do anyway when working on something simple that uses binary files, especially ones that are linked through the software that is required to read them (eg CAD designs). I will create multiple directories, eg v1, v2 and copy the entire contents of my in-progress files in it that I want to preserve the history. The issue with this is that when file names are changed, it can break links to dependent files, so keeping a file identical is important for tracking files. It was also a goal to use this tool over a network drive where multiple users can archive files as they wish 
