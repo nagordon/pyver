@@ -28,6 +28,8 @@ There are a couple of other excellent options, but have a steep learning curve a
 * know when the changes were made, with a comment and who did it
 
 # Tutorial
+
+## Run fromt he command line
 To get started, lets do a quick demo in windows. Brace yourself, you are going to have to use the command line. In your current directory with the pyver.py file, open a command line with ```shift+right_click``` and in the menu select ```Open command window here```. Another way to get a command window in your current directory is to type ```alt+D``` and type ```powershell``` or ```cmd```.
 Now type 
 ```
@@ -36,6 +38,7 @@ python pyver.py
 
 Done. That's it. We have created a pyver repository and made a backup of all the files in our current directory in an archive naming year-month-day-hour-minute-second. Anytime we need to make another backup, just repeat the last step.
 
+## Add pyver path to system
 OK, lets add a bit more work upfront to save us some typing for years to come. I would recommend having a windows folder that is added to the user PATH system variable where you can keep test or production scripts that you want to access from the command line. For example, I have ```C:\Users\Neal\bin``` that is in the system PATH variable which I can dump python scripts with the *.bat file. Now, all we have to type is ```pyver``` to get the same result as ```python pyver.py```
 To add this path variable, type 
 
@@ -45,6 +48,7 @@ To add this path variable, type
 3) Add PATH variable or append with the path to the folder with your scripts  
 ```
 
+## pyver commands
 There are a few built in commands to interrogate the repository. The first is log, which shows the contents of a text file that keeps track of the commits that are made
 ```
 pyver log
@@ -103,4 +107,20 @@ I used pyinstaller to build my own windows executable
 pyinstaller pyver.py --onefile
 ```
 
+## backing up multiple directories
+If there are multiple directories that need backed up, one easy way is to select the folders in windows explorer and paste them into a script(similar to this one) and then modify the `filelist` variable as shown
+
+```
+import os
+
+filelist = ["C:/Users/user1/test1", "C:/Users/user1/test2"]
+
+for f in filelist:
+    os.chdir(f)
+    os.system('pyver -c "automated backup"')
+    print('archived {}'.format(f))
+print('complete')
+```
+
+## finish
 There you have it. The worlds easiest version control system that multiple users can use over a network, retrieving your old files is trivial, and now you don't have to change your file names to all the silly things people come up with.
