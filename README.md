@@ -5,7 +5,7 @@ Version control for dummies
 * [ ] Append revision (_A) string on the end of an archive
 * [ ] Clean up file view in log, make new lines?
 * [ ] Add file watching with [watchdog](https://pypi.python.org/pypi/watchdog) , archive only changed files
-* [ ] File locking or read only attributing
+* [ ] File locking or read only attributing with [py-filelock](https://github.com/benediktschmitt/py-filelock) or [fasteners](https://github.com/harlowja/fasteners) or [portalocker](https://github.com/WoLpH/portalocker) or [Filelock](https://github.com/dmfrey/FileLock)
 * [ ] Console colors with [colorama?](https://pypi.python.org/pypi/colorama)
 * [ ] Create GUI - https://github.com/chriskiehl/Gooey
 * [ ] Package with [flit](http://flit.readthedocs.io/en/latest/index.html)
