@@ -12,11 +12,14 @@ import os, shutil, time, datetime, sys, argparse, glob, hashlib, pickle, filecmp
 import win32com.client, difflib
 from distutils.util import strtobool
 from datetime import timezone
+import json
 
 def pyver(user, comment, archivefiles, ziparchive, duplicate):
     '''
-    	main function of pyver. copys files from the current directory and creates an archive.
-     comma-delimmeted log file pyver.log keeps a record of the file changes
+    main function of pyver. copys files from the current directory and creates an archive.
+    comma-delimmeted log file pyver.log keeps a record of the file changes
+    
+    
     '''
 
     if not os.path.isdir('.archive'):
@@ -34,13 +37,21 @@ def pyver(user, comment, archivefiles, ziparchive, duplicate):
     # when copying files, confirm it is not in the last copy with the same hash
     # if the file has changed, copy it, if it is the same, then leave it
     
+    ### read file history 
+#    if os.path.exists('.archive/pyver.pkl'):
+#        with open('.archive/pyver.pkl', 'rb') as f:
+#            pyver_dict = pickle.load(f)    
+#    else:
+#        pyver_dict = {}
+        
+        
     # read file history 
-    if os.path.exists('.archive/pyver.pkl'):
-        with open('.archive/pyver.pkl', 'rb') as f:
-            pyver_dict = pickle.load(f)    
+    if os.path.exists('.archive/pyver.jsn'):
+        with open('.archive/pyver.jsn') as f:
+            pyver_dict = json.load(f)
     else:
         pyver_dict = {}
-    
+         
     # create a list of archive directories from newest to oldest
     archivedirs = list(pyver_dict.keys())
     archivedirs.sort()
@@ -65,11 +76,15 @@ def pyver(user, comment, archivefiles, ziparchive, duplicate):
                     #print('{} file has not changed, skipping'.format(f))
                     oldunchangedfiles.append(f)
                     break
-                
-    # write new file list with hash
-    with open('.archive/pyver.pkl', 'wb') as f:
-        # Pickle the 'data' dictionary using the highest protocol available.
-        pickle.dump(pyver_dict, f)#, pickle.HIGHEST_PROTOCOL)    
+    
+    
+    with open('.archive/pyver.jsn', 'w') as file:
+         file.write(json.dumps(pyver_dict, ensure_ascii=True, indent=1))   
+    
+#    # write new file list with hash
+#    with open('.archive/pyver.pkl', 'wb') as f:
+#        pickle.dump(pyver_dict, f)  
+        
     
     print('----files archived----')
     os.mkdir(archivepath)
