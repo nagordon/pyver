@@ -8,7 +8,7 @@ https://github.com/nagordon/pyver
 __author__ = 'Neal Gordon'
 __version__ = '0.2'
 
-import os, shutil, time, datetime, sys, argparse, glob, hashlib, pickle, filecmp
+import os, shutil, time, datetime, sys, argparse, glob, hashlib, filecmp
 import win32com.client, difflib
 from distutils.util import strtobool
 from datetime import timezone
@@ -35,15 +35,7 @@ def pyver(user, comment, archivefiles, ziparchive, duplicate):
     # parse past archives for unchanged files
     # read pickle file that has dictionary with all files and hash
     # when copying files, confirm it is not in the last copy with the same hash
-    # if the file has changed, copy it, if it is the same, then leave it
-    
-    ### read file history 
-#    if os.path.exists('.archive/pyver.pkl'):
-#        with open('.archive/pyver.pkl', 'rb') as f:
-#            pyver_dict = pickle.load(f)    
-#    else:
-#        pyver_dict = {}
-        
+    # if the file has changed, copy it, if it is the same, then leave it       
         
     # read file history 
     if os.path.exists('.archive/pyver.jsn'):
@@ -80,12 +72,8 @@ def pyver(user, comment, archivefiles, ziparchive, duplicate):
     
     with open('.archive/pyver.jsn', 'w') as file:
          file.write(json.dumps(pyver_dict, ensure_ascii=True, indent=1))   
-    
-#    # write new file list with hash
-#    with open('.archive/pyver.pkl', 'wb') as f:
-#        pickle.dump(pyver_dict, f)  
-        
-    
+
+
     print('----files archived----')
     os.mkdir(archivepath)
     for f in archivefiles:
@@ -239,6 +227,7 @@ def find_modified_time(myfile):
 
 def create_windows_shortcut(targetfile, targetfolder):
     '''
+    IN WORK-NOT CURRENTLY USED
     generate a shorcut to a windows file    
 
     # add if running in a thread
@@ -262,8 +251,9 @@ def create_windows_shortcut(targetfile, targetfolder):
 
 def files_same(f1,f2):
     '''
-    https://docs.python.org/3.6/library/filecmp.html    
-    returns  boolean if the files are the same
+    https://docs.python.org/3.6/library/filecmp.html   
+    
+    returns True if the files are the same
     '''
     return filecmp.cmp(f1,f2)
     
@@ -289,10 +279,16 @@ def dirdiff(dir1, dir2):
 
 
 def string_to_bool(string):
+    '''
+    returns a boolean type object given a string
+    '''
     return bool(strtobool(str(string)))
 
 
 def file_mtime(path):
+    '''
+    returns the file modified time
+    '''
     t = datetime.datetime.fromtimestamp(os.stat(path).st_mtime,
                                timezone.utc)
     return t.astimezone().isoformat()
@@ -300,7 +296,8 @@ def file_mtime(path):
 
 def show_file_info(filename):
     '''
-    path = 'README.md'
+    prints file info such as time created    
+    
     '''    
     
     stat_info = os.stat(path)
@@ -359,22 +356,27 @@ if __name__=='__main__':
         p.add_argument('-u', '--user',
                        default = os.path.split(os.path.expanduser('~'))[-1],
                        help='''user that made the pyver entry''')
+        
         p.add_argument('-f', '--files',
                        help='''omit to add all files.
 								add extensions 
                                 EXAMPLE "*.txt|*.docx"
 								add files separated by vertical line 
                                 EXAMPLE "file1.txt|file2.txt" ''')
+        
         p.add_argument('-c', '--comment', default = '',
                        help='''add a comment enclosed in double quotes
                                as to what changed. 
                                EXAMPLE "This is my comment" ''')
+        
         p.add_argument('-z', '--zip', default = False,
                        help='''default is to create directory, use zip flag to 
                                create a zip archive ''')        
+        
         p.add_argument('-d', '--duplicate', default = True,
                        help='''default is to copy all files to archive 
-                                directory, use dupe flag to skip unchanged files''')     
+                                directory, use duplicate flag to skip unchanged files''')   
+        
         p.add_argument('-p', '--prefixignore', default = None,
                        help='''default is to omit any filename that starts
                                with a '.' or '~'. to specify individual 

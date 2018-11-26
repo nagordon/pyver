@@ -33,8 +33,20 @@ There are a couple of other excellent options, but have a steep learning curve a
 
 # Tutorial
 
+## Install
+Pyver can be installed using the `setup.py` file. This will allow you to use the `-m` flag directly from the command line anywhere on your system and a custom bat file is not required.
+```
+python setup.py install
+```
+
+## Help  
+if you need help or want to see the documentation, either reference the [README](https://github.com/nagordon/pyver/blob/master/README.md) or refer to the local docstring.
+```
+pydoc pyver
+```
+
 ## Run from the command line
-To get started, lets do a quick demo in windows. Brace yourself, you are going to have to use the command line. In your current directory with the pyver.py file, open a command line with ```shift+right_click``` and in the menu select ```Open command window here```. Another way to get a command window in your current directory is to type ```alt+D``` and type ```powershell``` or ```cmd```.
+If you prefer not running the setup.py, you can create a bat file and add it to the system variables. To get started, lets do a quick demo in windows. Brace yourself, you are going to have to use the command line. In your current directory with the pyver.py file, open a command line with ```shift+right_click``` and in the menu select ```Open command window here```. Another way to get a command window in your current directory is to type ```alt+D``` and type ```powershell``` or ```cmd```.
 Now type 
 ```
 python pyver.py
@@ -43,6 +55,7 @@ python -m pyver
 ```
 
 Done. That's it. We have created a pyver repository and made a backup of all the files in our current directory in an archive naming year-month-day-hour-minute-second. Anytime we need to make another backup, just repeat the last step.
+
 
 ## Add pyver path to system
 OK, lets add a bit more work upfront to save us some typing for years to come. I would recommend having a windows folder that is added to the user PATH system variable where you can keep test or production scripts that you want to access from the command line. For example, I have ```C:\Users\Neal\bin``` that is in the system PATH variable which I can dump python scripts with the *.bat file. Now, all we have to type is ```pyver``` to get the same result as ```python pyver.py```
@@ -54,65 +67,7 @@ To add this path variable, type
 3) Add PATH variable or append with the path to the folder with your scripts  
 ```
 
-## pyver commands
-There are a few built in commands to interrogate the repository. The first is log, which shows the contents of a text file that keeps track of the commits that are made
-```
-pyver log
-Neal , 20160125210812 , 7kb ,  , pyver.py|README.md|pyver.bat
-Neal , 20160125210814 , 7kb ,  , pyver.py|README.md|pyver.bat
-Neal , 20160125210817 , 7kb ,  , pyver.py|README.md|pyver.bat
-Neal , 20160125210854 , 7kb , making a comment for this commit , pyver.py|README.md|pyver.bat
-Neal , 20160125210912 , 4kb , only adding one file , pyver.py
-```
-
-The next is tree, which shows all the files in the repo.
-```
-pyver tree
-
-./.archive 
-|  ./20160125210812 
-|   |     pyver.py  
-|   |     README.md  
-|   |     pyver.bat  
-|     pyver.log  
-|  ./20160125210814 
-|   |     pyver.py  
-|   |     README.md  
-|   |     pyver.bat  
-|  ./20160125210817 
-|   |     pyver.py  
-|   |     README.md  
-|   |     pyver.bat  
-|  ./20160125210854 
-|   |     pyver.py  
-|   |     README.md  
-|   |     pyver.bat  
-|  ./20160125210912 
-|   |     pyver.py  
-  pyver.py  
-  README.md  
-  pyver.bat  
-```
-
-
-We also have some flags we can use to customize our commits. This commit adds only the files file1.txt and file2.docx and adds a comment. Note-none of the flag inputs can have spaces, so files are seperated by ```|``` and comments are written without spaces using ```-```
-
-```
-pyver -f "file1.txt|file2.docx" -c "making a comment for this commit"
-```
-
-We can also use wildcards to add groups of files rather than listing each individual file. 
-```
-pyver -f "*.txt|*.docx" -c "I added all the txt and docx files to my archive"
-```
-
-Another example shows a zip archive of "txt" files only with the comment "test" and 
-```
-pyver -z true -c test -f *.txt
-```
-
-Also, by default, pyver will skip all files and directories that start with . and ~. These files are typically temporary, backup, or configuration files.
-
+## Building a Windows EXE
 I used pyinstaller to build my own windows executable
 ```
 pyinstaller pyver.py --onefile
