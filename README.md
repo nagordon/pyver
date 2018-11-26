@@ -2,13 +2,17 @@
 Version control for dummies
 
 ## TODO  
-* [ ] Append revision (_A) string on the end of an archive
+* [ ] Append revision string (eg -00, -01, etc) on the end of an archive
 * [ ] Clean up file view in log, make new lines?
 * [ ] Add file watching with [watchdog](https://pypi.python.org/pypi/watchdog) , archive only changed files
 * [ ] File locking or read only attributing with [py-filelock](https://github.com/benediktschmitt/py-filelock) or [fasteners](https://github.com/harlowja/fasteners) or [portalocker](https://github.com/WoLpH/portalocker) or [Filelock](https://github.com/dmfrey/FileLock)
 * [ ] Console colors with [colorama?](https://pypi.python.org/pypi/colorama)
 * [ ] Create GUI - https://github.com/chriskiehl/Gooey
 * [ ] Package with [flit](http://flit.readthedocs.io/en/latest/index.html)
+* [x] create file hash key
+* [x] added file compare tool
+* [x] added directory compare tool
+* [x] added optional file character name prefixes to ignore
 
 ## Why pyver?  
 The movtiation behind pyver, which is to creating a version control method which is very, very simple to track the history of files. The work-flow of pyver is something I do anyway when working on something simple that uses binary files, especially ones that are linked through the software that is required to read them (eg CAD designs). I will create multiple directories, eg v1, v2 and copy the entire contents of my in-progress files in it that I want to preserve the history. The issue with this is that when file names are changed, it can break links to dependent files, so keeping a file identical is important for tracking files. It was also a goal to use this tool over a network drive where multiple users can archive files as they wish 
@@ -29,11 +33,13 @@ There are a couple of other excellent options, but have a steep learning curve a
 
 # Tutorial
 
-## Run fromt he command line
+## Run from the command line
 To get started, lets do a quick demo in windows. Brace yourself, you are going to have to use the command line. In your current directory with the pyver.py file, open a command line with ```shift+right_click``` and in the menu select ```Open command window here```. Another way to get a command window in your current directory is to type ```alt+D``` and type ```powershell``` or ```cmd```.
 Now type 
 ```
 python pyver.py
+#or
+python -m pyver
 ```
 
 Done. That's it. We have created a pyver repository and made a backup of all the files in our current directory in an archive naming year-month-day-hour-minute-second. Anytime we need to make another backup, just repeat the last step.
@@ -98,6 +104,11 @@ pyver -f "file1.txt|file2.docx" -c "making a comment for this commit"
 We can also use wildcards to add groups of files rather than listing each individual file. 
 ```
 pyver -f "*.txt|*.docx" -c "I added all the txt and docx files to my archive"
+```
+
+Another example shows a zip archive of "txt" files only with the comment "test" and 
+```
+pyver -z true -c test -f *.txt
 ```
 
 Also, by default, pyver will skip all files and directories that start with . and ~. These files are typically temporary, backup, or configuration files.
