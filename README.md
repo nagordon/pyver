@@ -8,7 +8,6 @@ https://github.com/nagordon/pyver
 * [x] Clean up file view in log, make new lines?
 * [ ] File locking or read only attributing with [py-filelock](https://github.com/benediktschmitt/py-filelock) or [fasteners](https://github.com/harlowja/fasteners) or [portalocker](https://github.com/WoLpH/portalocker) or [Filelock](https://github.com/dmfrey/FileLock)
 * [x] Create GUI - https://github.com/chriskiehl/Gooey
-* [x] Package with [flit](http://flit.readthedocs.io/en/latest/index.html)
 * [x] create file hash key
 * [x] added file compare tool
 * [x] added directory compare tool
@@ -34,9 +33,11 @@ There are many versioning tools, but usually have a steep learning curve and som
 # Tutorial
 
 ## Install
-Pyver can be installed using the `setup.py` file. This will allow you to use the `-m` flag directly from the command line anywhere on your system and a custom bat file is not required.
-```
+Pyver can be installed using the `setup.py` file from github or install directly with pip. This will allow you to use the `-m` flag directly from the command line anywhere on your system.
+```bash
 python setup.py install
+#or
+pip install git+https://github.com/nagordon/pyver
 ```
 
 ## Help  
