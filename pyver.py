@@ -14,12 +14,108 @@ from distutils.util import strtobool
 from datetime import timezone
 import json
 
+### uncomment if you want to use the graphic user interface
+#from gooey import Gooey
+#@Gooey 
+def main():
+    
+    # if special flag is given, do not create archive but execute special program
+    if len(sys.argv) == 2 and sys.argv[1] == 'log':
+        log()
+    elif len(sys.argv) >= 2 and sys.argv[1] == 'tree':
+        path = sys.argv[2] if len(sys.argv) == 3 else '.'
+        tree(path)
+    elif len(sys.argv) == 4 and sys.argv[1] == 'filediff':
+        filediff(sys.argv[2], sys.argv[3])
+    elif len(sys.argv) == 4 and sys.argv[1] == 'dirdiff':
+        dirdiff(sys.argv[2], sys.argv[3])        
+        
+    else:
+
+        p = argparse.ArgumentParser()
+        
+        p.description = '| pyver | version: {} | author: {} |'.format(
+                        __version__,__author__)
+
+        p.add_argument('-u', '--user',
+                       default = os.path.split(os.path.expanduser('~'))[-1],
+                       help='''user that made the pyver entry
+                            EXAMPLE
+                            $ python -m pyver -u nagordon''')
+        
+        p.add_argument('-f', '--files',
+                       default='',
+                       help='''Default is '' to to add all files. 
+                            EXAMPLE of specific file extension wildcards 
+                            $ python -m pyver -f "*.txt|*.docx"
+                            EXAMPLE for only individual files 
+                            $ python -m pyver "file1.txt|file2.txt" 
+                            ''')
+        
+        p.add_argument('-c', '--comment', default = '',
+                       help='''add a comment enclosed in double quotes. 
+                            EXAMPLE 
+                            $ pyver -m pver -v "This is my comment"
+                            ''')
+        
+        p.add_argument('-z', '--zip', default = False,
+                       help='''default is False to create a zipped archive.
+                            EXAMPLE
+                            $ python -m pyver -z True
+                            ''')        
+        
+        p.add_argument('-d', '--duplicate', default = True,
+                       help='''default is to copy all files to archive 
+                            directory regardless if the file has changed. 
+                            Use duplicate flag to skip unchanged files based on hash key
+                            EXAMPLE
+                            $ python -m pyver -d False
+                            ''')   
+        
+        p.add_argument('-p', '--prefixignore', default = None,
+                       help='''default is to omit any filename that starts
+                               with a '.' or '~'. 
+                               To specify individual prefix omissions, list 
+                               them without puncuation such as '.~' 
+                               EXAMPLE-If no omissions are desired
+                               $ python -m pyver -p
+                               EXAMPLE to omit files that start with 'g'
+                               $ python -m pyver -p g
+                               ''')
+                    
+        args = p.parse_args()
+
+        if args.files:
+            # collect all files of a type
+            tempfiles = args.files.split('|')
+            args.files = []
+            for t in tempfiles:
+                if t[0] == '*':
+                    args.files.extend(all_files('.', t[1:]))
+                elif t not in os.listdir(os.getcwd()):
+                    print('%s not found, skipping' % t)
+                else:
+                    args.files.append(t)
+                # default to remove archive directory
+                if '.archive' in args.files:
+                    args.files.remove('.archive')
+                    
+        elif args.prefixignore == None:
+            args.prefixignore = '~._'
+            args.files = all_files('.','.',args.prefixignore)
+        else:
+            args.files = all_files('.','.',args.prefixignore)  # add all files
+
+        
+        args.duplicate = string_to_bool(args.duplicate)
+        args.zip = string_to_bool(args.zip)
+        
+        pyver(args.user, args.comment, args.files, args.zip, args.duplicate)
+    
 def pyver(user, comment, archivefiles, ziparchive, duplicate):
     '''
     main function of pyver. copys files from the current directory and creates an archive.
     comma-delimmeted log file pyver.log keeps a record of the file changes
-    
-    
     '''
 
     if not os.path.isdir('.archive'):
@@ -300,7 +396,7 @@ def show_file_info(filename):
     
     '''    
     
-    stat_info = os.stat(path)
+    stat_info = os.stat(filename)
     print('\tMode :', stat_info.st_mode)
     print('\tCreated :', time.ctime(stat_info.st_ctime))
     print('\tAccessed:', time.ctime(stat_info.st_atime))
@@ -325,90 +421,14 @@ def filediff(fromfile, tofile):
     # write new file list with hash
     newfilename = os.path.basename(fromfile) + '_' + os.path.basename(tofile) + '.html'
     with open(newfilename, 'w') as f:
+        print('created {}'.format(newfilename))
         f.write(diff)
 
 
 
 if __name__=='__main__':
-    '''
+   '''
 	executed if module is not imported
-    '''
-
-    # if special flag is given, do not create archive but execute special program
-    if len(sys.argv) == 2 and sys.argv[1] == 'log':
-        log()
-    elif len(sys.argv) >= 2 and sys.argv[1] == 'tree':
-        path = sys.argv[2] if len(sys.argv) == 3 else '.'
-        tree(path)
-    elif len(sys.argv) == 4 and sys.argv[1] == 'filediff':
-        filediff(sys.argv[2], sys.argv[3])
-    elif len(sys.argv) == 4 and sys.argv[1] == 'dirdiff':
-        dirdiff(sys.argv[2], sys.argv[3])        
-        
-    else:
-
-        p = argparse.ArgumentParser()
-        
-        p.description = '| pyver | version: {} | author: {} |'.format(
-                        __version__,__author__)
-
-        
-        p.add_argument('-u', '--user',
-                       default = os.path.split(os.path.expanduser('~'))[-1],
-                       help='''user that made the pyver entry''')
-        
-        p.add_argument('-f', '--files',
-                       help='''omit to add all files.
-								add extensions 
-                                EXAMPLE "*.txt|*.docx"
-								add files separated by vertical line 
-                                EXAMPLE "file1.txt|file2.txt" ''')
-        
-        p.add_argument('-c', '--comment', default = '',
-                       help='''add a comment enclosed in double quotes
-                               as to what changed. 
-                               EXAMPLE "This is my comment" ''')
-        
-        p.add_argument('-z', '--zip', default = False,
-                       help='''default is to create directory, use zip flag to 
-                               create a zip archive ''')        
-        
-        p.add_argument('-d', '--duplicate', default = True,
-                       help='''default is to copy all files to archive 
-                                directory, use duplicate flag to skip unchanged files''')   
-        
-        p.add_argument('-p', '--prefixignore', default = None,
-                       help='''default is to omit any filename that starts
-                               with a '.' or '~'. to specify individual 
-                               prefix omissions, list them without
-                               puncuation such as '.~' 
-                               If no omissions are desired, use "" ''')
-                    
-        args = p.parse_args()
-
-        if args.files:
-            # collect all files of a type
-            tempfiles = args.files.split('|')
-            args.files = []
-            for t in tempfiles:
-                if t[0] == '*':
-                    args.files.extend(all_files('.', t[1:]))
-                elif t not in os.listdir(os.getcwd()):
-                    print('%s not found, skipping' % t)
-                else:
-                    args.files.append(t)
-                # default to remove archive directory
-                if '.archive' in args.files:
-                    args.files.remove('.archive')
-                    
-        elif args.prefixignore == None:
-            args.prefixignore = '~._'
-            args.files = all_files('.','.',args.prefixignore)
-        else:
-            args.files = all_files('.','.',args.prefixignore)  # add all files
-
-        
-        args.duplicate = string_to_bool(args.duplicate)
-        args.zip = string_to_bool(args.zip)
-        
-        pyver(args.user, args.comment, args.files, args.zip, args.duplicate)
+   '''
+   
+   main()

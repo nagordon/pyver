@@ -8,7 +8,7 @@ HERE = pathlib.Path(__file__).parent
 README = (HERE / "README.md").read_text()
 
 setup(
-    name="pyver",
+    name="pyver-vc",
     version="0.2",
     description="version control for dummies",
     long_description=README,
