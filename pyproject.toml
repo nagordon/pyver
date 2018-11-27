@@ -1,0 +1,11 @@
+[build-system]
+requires = ["flit"]
+build-backend = "flit.buildapi"
+
+[tool.flit.metadata]
+module = "pyver"
+author = "Neal Gordon"
+author-email = "nealagordon@gmail.com"
+home-page = "https://github.com/nagordon/pyver"
+classifiers = ["License :: OSI Approved :: MIT License"]
+
