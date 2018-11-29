@@ -160,10 +160,11 @@ def pyver(user, comment, archivefiles, ziparchive, duplicate):
     if not duplicate:
         for f in pyver_dict[timestamp].keys():
             for k in archivedirs:
-                if pyver_dict[k][f] == pyver_dict[timestamp][f]:
-                    #print('{} file has not changed, skipping'.format(f))
-                    oldunchangedfiles.append(f)
-                    break
+                if f in pyver_dict[k].keys(): # confirm not a new file
+                    if pyver_dict[k][f] == pyver_dict[timestamp][f]:
+                        #print('{} file has not changed, skipping'.format(f))
+                        oldunchangedfiles.append(f)
+                        break
     
     
     with open('.archive/pyver.jsn', 'w') as file:
