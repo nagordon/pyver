@@ -64,7 +64,7 @@ def main():
                             $ python -m pyver -z True
                             ''')        
         
-        p.add_argument('-d', '--duplicate', default = True,
+        p.add_argument('-d', '--duplicate', default = False,
                        help='''default is to copy all files to archive 
                             directory regardless if the file has changed. 
                             Use duplicate flag to skip unchanged files based on hash key
@@ -170,22 +170,23 @@ def pyver(user, comment, archivefiles, ziparchive, duplicate):
     with open('.archive/pyver.jsn', 'w') as file:
          file.write(json.dumps(pyver_dict, ensure_ascii=True, indent=1))   
 
-
-    print('----files archived----')
+    print()
+    print('---------- files archived in {} ----------'.format(timestamp))
     os.mkdir(archivepath)
     for f in archivefiles:
         if f in oldunchangedfiles:
-            print('{} is an archived unchanged file, skipping new archive'.format(f))
+            print('- unchanged skipping {}'.format(f))
             continue
         if not os.path.exists(os.path.dirname(os.path.join(archivepath, f))):
             os.makedirs(os.path.join(archivepath,os.path.dirname(f)))
         try:
             shutil.copy(f , os.path.join(archivepath, f))
-            print(os.path.join(archivepath, f))
+            print('+ archived {}'.format(f))
         except:
-            print('%s copy failed. Is it open?' % os.path.join(archivepath, f))
+            print('failed copy - {}\n'.format(os.path.join(archivepath, f)) )
         #print('directory %s created' % os.path.join(archivepath,os.path.dirname(f)))
     archivesize = sum([os.path.getsize(s) for s in os.listdir(archivepath)])/1e3 # kb
+    print()
 
     ### makes a zip file instead
     if ziparchive:
