@@ -6,7 +6,7 @@ https://github.com/nagordon/pyver
 """
 
 __author__ = 'Neal Gordon'
-__version__ = '0.2'
+__version__ = '0.3'
 
 import os, shutil, time, datetime, sys, argparse, glob, hashlib, filecmp
 import win32com.client, difflib
@@ -19,72 +19,123 @@ import json
 #@Gooey 
 def main():
     
-    # if special flag is given, do not create archive but execute special program
-    if len(sys.argv) == 2 and sys.argv[1] == 'log':
+    p = argparse.ArgumentParser()
+    
+    p.description = '| pyver | version: {} | author: {} |'.format(
+                    __version__,__author__)
+
+
+    # =========================================================================
+    # FILE TOOLS
+    # =========================================================================
+    p.add_argument('-l', '--log',
+                    action='store_const', 
+                    const=lambda:'log', 
+                    dest='cmd',
+                    default = '',
+                    help='''prints logs
+                        EXAMPLE
+                        $ python -m pyver -l''')
+
+
+    p.add_argument('-t', '--tree',
+                    default = '',
+                    help='''print file tree
+                        EXAMPLE
+                        $ python -m pyver -t''')
+
+
+    p.add_argument('-fd', '--filediff',
+                    default = '',
+                    help='''creates html file of the differences 
+                            of an ascii text file
+                        EXAMPLE
+                        $ python -m pyver -fd''')
+
+
+    p.add_argument('-dd', '--dirdiff',
+                    default = '',
+                    help='''creates and html file of the differences
+                            of all ascii text files in a directory
+                        EXAMPLE
+                        $ python -m pyver -dd''')
+
+
+    # =========================================================================
+    # PYVER FUNCTIONS
+    # =========================================================================
+    p.add_argument('-u', '--user',
+                    default = os.path.split(os.path.expanduser('~'))[-1],
+                    help='''user that made the pyver entry
+                        EXAMPLE
+                        $ python -m pyver -u nagordon''')
+    
+    p.add_argument('-f', '--files',
+                    default='',
+                    help='''Default is '' to to add all files. 
+                        EXAMPLE of specific file extension wildcards 
+                        $ python -m pyver -f "*.txt|*.docx"
+                        EXAMPLE for only individual files 
+                        $ python -m pyver "file1.txt|file2.txt" 
+                        ''')
+    
+    p.add_argument('-c', '--comment', default = '',
+                    help='''add a comment enclosed in double quotes. 
+                        EXAMPLE 
+                        $ pyver -m pver -v "This is my comment"
+                        ''')
+    
+    p.add_argument('-z', '--zip', default = False,
+                    help='''default is False to create a zipped archive.
+                        EXAMPLE
+                        $ python -m pyver -z True
+                        ''')        
+    
+    p.add_argument('-d', '--duplicate', default = False,
+                    help='''default is to copy all files to archive 
+                        directory regardless if the file has changed. 
+                        Use duplicate flag to skip unchanged files based on hash key
+                        EXAMPLE
+                        $ python -m pyver -d False
+                        ''')   
+    
+    p.add_argument('-p', '--prefixignore', default = None,
+                    help='''default is to omit any filename that starts
+                            with a '.' or '~'. 
+                            To specify individual prefix omissions, list 
+                            them without puncuation such as '.~' 
+                            EXAMPLE-If no omissions are desired
+                            $ python -m pyver -p
+                            EXAMPLE to omit files that start with 'g'
+                            $ python -m pyver -p g
+                            ''')
+                
+    
+    # =========================================================================
+    # Parse input
+    # =========================================================================    
+    
+
+    if sys.argv[1] == 'log':
         log()
+
     elif len(sys.argv) >= 2 and sys.argv[1] == 'tree':
-        path = sys.argv[2] if len(sys.argv) == 3 else '.'
+        if len(sys.argv) == 3 :
+            path = sys.argv[2] 
+        else:
+            path = '.'
         tree(path)
+
     elif len(sys.argv) == 4 and sys.argv[1] == 'filediff':
         filediff(sys.argv[2], sys.argv[3])
+
     elif len(sys.argv) == 4 and sys.argv[1] == 'dirdiff':
-        dirdiff(sys.argv[2], sys.argv[3])        
-        
+        dirdiff(sys.argv[2], sys.argv[3])   
+
     else:
-
-        p = argparse.ArgumentParser()
-        
-        p.description = '| pyver | version: {} | author: {} |'.format(
-                        __version__,__author__)
-
-        p.add_argument('-u', '--user',
-                       default = os.path.split(os.path.expanduser('~'))[-1],
-                       help='''user that made the pyver entry
-                            EXAMPLE
-                            $ python -m pyver -u nagordon''')
-        
-        p.add_argument('-f', '--files',
-                       default='',
-                       help='''Default is '' to to add all files. 
-                            EXAMPLE of specific file extension wildcards 
-                            $ python -m pyver -f "*.txt|*.docx"
-                            EXAMPLE for only individual files 
-                            $ python -m pyver "file1.txt|file2.txt" 
-                            ''')
-        
-        p.add_argument('-c', '--comment', default = '',
-                       help='''add a comment enclosed in double quotes. 
-                            EXAMPLE 
-                            $ pyver -m pver -v "This is my comment"
-                            ''')
-        
-        p.add_argument('-z', '--zip', default = False,
-                       help='''default is False to create a zipped archive.
-                            EXAMPLE
-                            $ python -m pyver -z True
-                            ''')        
-        
-        p.add_argument('-d', '--duplicate', default = False,
-                       help='''default is to copy all files to archive 
-                            directory regardless if the file has changed. 
-                            Use duplicate flag to skip unchanged files based on hash key
-                            EXAMPLE
-                            $ python -m pyver -d False
-                            ''')   
-        
-        p.add_argument('-p', '--prefixignore', default = None,
-                       help='''default is to omit any filename that starts
-                               with a '.' or '~'. 
-                               To specify individual prefix omissions, list 
-                               them without puncuation such as '.~' 
-                               EXAMPLE-If no omissions are desired
-                               $ python -m pyver -p
-                               EXAMPLE to omit files that start with 'g'
-                               $ python -m pyver -p g
-                               ''')
-                    
         args = p.parse_args()
 
+        # default operation, backup files
         if args.files:
             # collect all files of a type
             tempfiles = args.files.split('|')
@@ -111,6 +162,7 @@ def main():
         args.zip = string_to_bool(args.zip)
         
         pyver(args.user, args.comment, args.files, args.zip, args.duplicate)
+
     
 def pyver(user, comment, archivefiles, ziparchive, duplicate):
     '''
@@ -226,7 +278,7 @@ def log():
     else:
         print('not a pver repository')
 
-def tree(path,indent=' '):
+def tree(path='.',indent=' '):
     '''recursiveley prints the contents of a directory'''
     for file in os.listdir(path):
         fullpath = path + '/' + file
