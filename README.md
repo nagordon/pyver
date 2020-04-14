@@ -13,6 +13,7 @@ https://github.com/nagordon/pyver
 * [x] added directory compare tool
 * [x] added optional file character name prefixes to ignore
 * [ ] add file monitoring with [watchdog](https://pythonhosted.org/watchdog/quickstart.html)
+* [ ] add html link page simialr to tree function
 
 ## Why pyver?  
 The motivation behind pyver, which is to creating a version control method which is very, very simple to track the history of files. The work-flow of pyver is something I do anyway when working on something simple that uses binary files, especially ones that are linked through the software that is required to read them (eg CAD, Excel, etc). In the past I would create multiple version directories and copy the entire contents of my in-progress files in it that I want to preserve the history. The issue with this is that when file names are changed, it can break links to dependent files, so keeping a file identical is important for tracking files. It was also a goal to use this tool over a network drive where multiple users can archive files as they wish.  
