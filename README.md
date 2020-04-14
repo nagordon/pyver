@@ -52,33 +52,54 @@ python -m pyver --help
 ```bash
 usage: pyver.py [-h] [-u USER] [-f FILES] [-c COMMENT] [-z ZIP] [-d DUPLICATE]
                 [-p PREFIXIGNORE]
+                {log,tree,filediff,dirdiff} ...
 
-| pyver | version: 0.2 | author: Neal Gordon |
+| pyver | version: 0.3 | author: Neal Gordon |
+
+positional arguments:
+  {log,tree,filediff,dirdiff}
+    log                 prints pyver logs
+                        Example--$ python -m pyver log
+    tree                print file tree
+                        Example--$ python -m pyver tree
+                        Example--$ pyver tree C:/Users/user/Desktop
+    filediff            creates html file of the
+                        differences of an ascii text file
+                        EXAMPLE--$ python -m pyver filediff
+    dirdiff             creates an html file
+                        of the differences of all
+                        ascii text files in a directory
+                        EXAMPLE--$ python -m pyver dirdiff
 
 optional arguments:
   -h, --help            show this help message and exit
   -u USER, --user USER  user that made the pyver entry
+                        EXAMPLE--$ python -m pyver -u nagordon
   -f FILES, --files FILES
-                        Default is '' to to add all files. EXAMPLE of specific
-                        file extension wildcards $ python -m pyver -f
-                        "*.txt|*.docx" EXAMPLE for only individual files $
-                        python -m pyver "file1.txt|file2.txt"
+                        Default is "" to to add all files.EXAMPLE of specific file extension wildcards
+                        $ python -m pyver -f "*.txt|*.docx"
+                        EXAMPLE for only individual files
+                        $ python -m pyver "file1.txt|file2.txt"
   -c COMMENT, --comment COMMENT
-                        add a comment enclosed in double quotes. EXAMPLE $
-                        pyver -m pver -v "This is my comment"
-  -z ZIP, --zip ZIP     default is False to create a zipped archive. EXAMPLE
-                        python -m pyver -z True
+                        add a comment enclosed in double quotes.
+                        EXAMPLE--$ pyver -m pver -v "This is my comment"
+  -z ZIP, --zip ZIP     default is False to create a zipped archive.
+                        EXAMPLE--$ python -m pyver -z True
   -d DUPLICATE, --duplicate DUPLICATE
-                        default is to copy all files to archive directory
-                        regardless if the file has changed. Use duplicate flag
-                        to skip unchanged files based on hash key EXAMPLE
-                        python -m pyver -d False
+                        default is to copy all files to archive
+                        directory regardless if the file has changed.
+                        Use duplicate flag to skip unchanged
+                        files based on hash key
+                        EXAMPLE--$ python -m pyver -d False
   -p PREFIXIGNORE, --prefixignore PREFIXIGNORE
-                        default is to omit any filename that starts with a '.'
-                        or '~'. To specify individual prefix omissions, list
-                        them without puncuation such as '.~' EXAMPLE-If no
-                        omissions are desired python -m pyver -p EXAMPLE to
-                        omit files that start with 'g' python -m pyver -p
+                        default is to omit any filename that starts
+                        with a "." or "~" or "_"
+                        To specify individual prefix omissions, list
+                        them without puncuation such as ".~"
+                        EXAMPLE-If no omissions are desired
+                        $ python -m pyver -p
+                        EXAMPLE to omit files that start with "g"
+                        $ python -m pyver -p g
 ```
 
 if you need help or want to see the documentation, either reference the [README](https://github.com/nagordon/pyver/blob/master/README.md) or refer to the local docstring.
@@ -96,6 +117,10 @@ NAME
 DESCRIPTION
     https://github.com/nagordon/pyver
 
+    https://docs.python.org/3/library/argparse.html#the-parse-args-method
+
+    https://docs.python.org/3.8/library/filecmp.html
+
 FUNCTIONS
     add_path(add_folder='C:\\Users\\ngordon\\test')
         temporarily adds path to the system PATH variable
@@ -103,6 +128,12 @@ FUNCTIONS
     all_files(rootDir='.', wildcard='.', prefixignore='.~')
         returns all files and directories that do not start with prefixignore
         accepts wildcards in the format *.py   or *.txt
+
+    all_files2(ext='png', andcriteria=['.'])
+        recursively finds files match match all criteria of a specific fiel extension
+
+    cleanquote(s)
+        clear off extra quotes
 
     clearFiles(filetypes=['exe', 'spec'])
         WARNING THIS WILL DELETE FILES SO USE CAREFULLY
@@ -117,7 +148,7 @@ FUNCTIONS
 
     create_windows_shortcut(targetfile, targetfolder)
         IN WORK-NOT CURRENTLY USED
-        generate a shorcut to a windows file    
+        generate a shorcut to a windows file
 
         # add if running in a thread
         pythoncom.CoInitialize()
@@ -129,8 +160,11 @@ FUNCTIONS
         Here is a simplified example of using the subdirs attribute to search
         recursively through two directories to show common different files:
 
-        dir1 = 'test1'
-        dir2 = 'test2'
+        dir1 = './tutorial/test1'
+        dir2 = './tutorial/test2'
+
+
+        './tutorial/test1' './tutorial/test2'
 
     file_mtime(path)
         returns the file modified time
@@ -141,15 +175,22 @@ FUNCTIONS
         html:     generates side by side comparison with change highlights.
 
     files_same(f1, f2)
-        https://docs.python.org/3.6/library/filecmp.html   
+        https://docs.python.org/3.6/library/filecmp.html
 
         returns True if the files are the same
+
+    find_files_recusive_glob(ext='png')
 
     find_modified_time(myfile)
         find when the file was last modified
 
     log()
         shows the contents of the pyver log file
+
+    main()
+        ### uncomment if you want to use the graphic user interface
+        #from gooey import Gooey
+        #@Gooey
 
     make_hidden(hidedir)
         creates windows hidden folder
@@ -170,17 +211,17 @@ FUNCTIONS
     string_to_bool(string)
         returns a boolean type object given a string
 
-    tree(path, indent=' ')
+    tree(path='.', indent=' ')
         recursiveley prints the contents of a directory
 
 VERSION
-    0.2
+    0.3
 
 AUTHOR
     Neal Gordon
 
 FILE
-    c:\users\neal\desktop\pyver\pyver.py
+    c:\users\nagordon\bin\pyver\pyver.py
 ```
 
 ## Run from the command line

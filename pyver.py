@@ -3,6 +3,10 @@
 Version control for dummies
 
 https://github.com/nagordon/pyver
+
+https://docs.python.org/3/library/argparse.html#the-parse-args-method
+
+https://docs.python.org/3.8/library/filecmp.html
 """
 
 __author__ = 'Neal Gordon'
@@ -13,129 +17,131 @@ import win32com.client, difflib
 from distutils.util import strtobool
 from datetime import timezone
 import json
+import natsort
+# conda install -c anaconda natsort
+
+#conda install pyinstaller
 
 ### uncomment if you want to use the graphic user interface
 #from gooey import Gooey
 #@Gooey 
 def main():
     
-    p = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     
-    p.description = '| pyver | version: {} | author: {} |'.format(
+    subparsers = parser.add_subparsers(dest='subparser_name')
+    
+    parser.description = '| pyver | version: {} | author: {} |'.format(
                     __version__,__author__)
-
 
     # =========================================================================
     # FILE TOOLS
     # =========================================================================
-    p.add_argument('-l', '--log',
-                    action='store_const', 
-                    const=lambda:'log', 
-                    dest='cmd',
-                    default = '',
-                    help='''prints logs
-                        EXAMPLE
-                        $ python -m pyver -l''')
+    parser_log = subparsers.add_parser('log',
+                                       help='prints pyver logs\n'\
+                                       'Example--$ python -m pyver log') 
+    parser_log.set_defaults(func=log)
 
 
-    p.add_argument('-t', '--tree',
-                    default = '',
-                    help='''print file tree
-                        EXAMPLE
-                        $ python -m pyver -t''')
+    parser_tree = subparsers.add_parser('tree',
+                                        help='print file tree\n'\
+                                        'Example--$ python -m pyver tree\n'\
+                                        'Example--$ pyver tree C:/Users/user/Desktop')
+    parser_tree.add_argument('treedir',type=str,default='.')
+    parser_tree.set_defaults(func=tree, treedir='.')
 
 
-    p.add_argument('-fd', '--filediff',
-                    default = '',
-                    help='''creates html file of the differences 
-                            of an ascii text file
-                        EXAMPLE
-                        $ python -m pyver -fd''')
+    parser_filediff = subparsers.add_parser('filediff',
+                                        help='creates html file of the\n'\
+                                        'differences of an ascii text file\n'
+                                        'EXAMPLE--$ python -m pyver filediff')
+    parser_filediff.set_defaults(func=filediff)  
+    parser_filediff.add_argument('d1')
+    parser_filediff.add_argument('d2')
 
 
-    p.add_argument('-dd', '--dirdiff',
-                    default = '',
-                    help='''creates and html file of the differences
-                            of all ascii text files in a directory
-                        EXAMPLE
-                        $ python -m pyver -dd''')
+    parser_dirdiff = subparsers.add_parser('dirdiff',
+                                            help='creates an html file \n'\
+                                            'of the differences of all \n'\
+                                            'ascii text files in a directory\n'\
+                                            'EXAMPLE--$ python -m pyver dirdiff')
+    parser_dirdiff.add_argument('d1')
+    parser_dirdiff.add_argument('d2')
+    parser_dirdiff.set_defaults(func=dirdiff)  
 
-
+    parser.set_defaults(treedir='.')
     # =========================================================================
     # PYVER FUNCTIONS
     # =========================================================================
-    p.add_argument('-u', '--user',
+    parser.add_argument('-u', '--user',
                     default = os.path.split(os.path.expanduser('~'))[-1],
-                    help='''user that made the pyver entry
-                        EXAMPLE
-                        $ python -m pyver -u nagordon''')
+                    help='user that made the pyver entry\n'\
+                        'EXAMPLE--$ python -m pyver -u nagordon')
     
-    p.add_argument('-f', '--files',
+    parser.add_argument('-f', '--files',
                     default='',
-                    help='''Default is '' to to add all files. 
-                        EXAMPLE of specific file extension wildcards 
-                        $ python -m pyver -f "*.txt|*.docx"
-                        EXAMPLE for only individual files 
-                        $ python -m pyver "file1.txt|file2.txt" 
-                        ''')
+                    help='Default is "" to to add all files.'\
+                        'EXAMPLE of specific file extension wildcards\n'\
+                        '$ python -m pyver -f "*.txt|*.docx" \n'\
+                        'EXAMPLE for only individual files \n'\
+                        '$ python -m pyver "file1.txt|file2.txt" ')
     
-    p.add_argument('-c', '--comment', default = '',
-                    help='''add a comment enclosed in double quotes. 
-                        EXAMPLE 
-                        $ pyver -m pver -v "This is my comment"
-                        ''')
+    parser.add_argument('-c', '--comment', default = '',
+                    help='add a comment enclosed in double quotes. \n'\
+                        'EXAMPLE--$ pyver -m pver -v "This is my comment"')
     
-    p.add_argument('-z', '--zip', default = False,
-                    help='''default is False to create a zipped archive.
-                        EXAMPLE
-                        $ python -m pyver -z True
-                        ''')        
+    parser.add_argument('-z', '--zip', default = False,
+                    help='default is False to create a zipped archive.\n'\
+                        'EXAMPLE--$ python -m pyver -z True')
     
-    p.add_argument('-d', '--duplicate', default = False,
-                    help='''default is to copy all files to archive 
-                        directory regardless if the file has changed. 
-                        Use duplicate flag to skip unchanged files based on hash key
-                        EXAMPLE
-                        $ python -m pyver -d False
-                        ''')   
+    parser.add_argument('-d', '--duplicate', default = False,
+                    help='default is to copy all files to archive \n'\
+                        'directory regardless if the file has changed.\n'\
+                        'Use duplicate flag to skip unchanged \n'\
+                        'files based on hash key\n'\
+                        'EXAMPLE--$ python -m pyver -d False')
     
-    p.add_argument('-p', '--prefixignore', default = None,
-                    help='''default is to omit any filename that starts
-                            with a '.' or '~'. 
-                            To specify individual prefix omissions, list 
-                            them without puncuation such as '.~' 
-                            EXAMPLE-If no omissions are desired
-                            $ python -m pyver -p
-                            EXAMPLE to omit files that start with 'g'
-                            $ python -m pyver -p g
-                            ''')
+    parser.add_argument('-p', '--prefixignore', default = '~._',
+                        help='default is to omit any filename that starts\n'\
+                                'with a "." or "~" or "_" \n'\
+                                'To specify individual prefix omissions, list \n'\
+                                'them without puncuation such as ".~" \n'\
+                                'EXAMPLE-If no omissions are desired\n'\
+                                '$ python -m pyver -p \n'\
+                                'EXAMPLE to omit files that start with "g" \n'\
+                                '$ python -m pyver -p g')
                 
     
     # =========================================================================
     # Parse input
     # =========================================================================    
+#    args = parser.parse_args(['dirdiff','./tutorial/test1','./tutorial/test2'])
+#    args = parser.parse_args(['tree','.'])
+#    args.func(args)
+    args = parser.parse_args()
+    #args.func(args)
+#    
+#    print(args.subparser_name)
+ 
+    
+    #myargs = [cleanquote(k) for k in sys.argv]
+    if args.subparser_name == 'tree':
+        path = sys.argv[2] if len(sys.argv) == 3 else '.'
+        tree(path)
+    elif args.subparser_name == 'log':
+        log()
+    elif args.subparser_name == 'filediff':
+        filediff(sys.argv[2], sys.argv[3])
+    elif args.subparser_name == 'dirdiff':
+        print('args=',sys.argv)
+        dirdiff(sys.argv[2], sys.argv[3])    
     
 
-    if sys.argv[1] == 'log':
-        log()
-
-    elif len(sys.argv) >= 2 and sys.argv[1] == 'tree':
-        if len(sys.argv) == 3 :
-            path = sys.argv[2] 
-        else:
-            path = '.'
-        tree(path)
-
-    elif len(sys.argv) == 4 and sys.argv[1] == 'filediff':
-        filediff(sys.argv[2], sys.argv[3])
-
-    elif len(sys.argv) == 4 and sys.argv[1] == 'dirdiff':
-        dirdiff(sys.argv[2], sys.argv[3])   
+#     parser.parse_args(['tree'])
+#    parser.parse_args(['tree','C:/Users/ngordon/bin/pyver'])
+#    #parser.parse_args(["dirdiff './tutorial/test2' './tutorial/test2'"])
 
     else:
-        args = p.parse_args()
-
-        # default operation, backup files
         if args.files:
             # collect all files of a type
             tempfiles = args.files.split('|')
@@ -156,12 +162,20 @@ def main():
             args.files = all_files('.','.',args.prefixignore)
         else:
             args.files = all_files('.','.',args.prefixignore)  # add all files
-
+    
         
         args.duplicate = string_to_bool(args.duplicate)
         args.zip = string_to_bool(args.zip)
         
-        pyver(args.user, args.comment, args.files, args.zip, args.duplicate)
+        pyver(args.user, args.comment, args.files, args.zip, args.duplicate)    
+
+
+
+def cleanquote(s):
+    '''clear off extra quotes'''
+    
+    return s.replace('"','').replace("'",'')
+    
 
     
 def pyver(user, comment, archivefiles, ziparchive, duplicate):
@@ -278,8 +292,10 @@ def log():
     else:
         print('not a pver repository')
 
-def tree(path='.',indent=' '):
+def tree(path='.', indent=' '):
     '''recursiveley prints the contents of a directory'''
+    #path = path.replace('"','')  # remove extra quotes from args
+    #path = path.replace("'",'')  # remove extra quotes from args
     for file in os.listdir(path):
         fullpath = path + '/' + file
         if os.path.isfile(fullpath):
@@ -295,22 +311,35 @@ def make_win_exe():
     os.system('pip install pyinstaller')
     os.system('pyinstaller pyver.py --onefile')
 
+
+def find_files_recusive_glob(ext='png'):
+    myimages = glob('**/*.'+ext, recursive=True)
+    return myimages
+
+
+
+def all_files2(ext='png', andcriteria=['.']):
+    '''
+    recursively finds files match match all criteria of a specific fiel extension
+    '''
+    myfiles = glob('**/*.'+ext, recursive=True)
+
+    for c in andcriteria:
+        myfiles = [k for k in myfiles if c in k]
+    return natsort(myfiles)
+
+
+
 def all_files(rootDir = '.', wildcard = '.', prefixignore = '.~'):
     '''
     returns all files and directories that do not start with prefixignore
     accepts wildcards in the format *.py   or *.txt
     '''
-    #rootDir = '.'
+
     files = []
     for dirName, subdirList, fileList in os.walk(rootDir):
         for fname in fileList:
             fullpath = os.path.join(dirName, fname)
-            # skip over files and folders that start with . or ~
-
-            # os.path.splitext(f[-2])[1]      extension
-            #if fullpath.split(os.sep)[1] != '.' and fullpath.split(os.sep)[1] != '~':
-            #os.path.basename(fullpath)[0] != '.'
-            #os.path.basename(fullpath)[0] != '~'
             
             # for all filenames confirm prefixignore char is not in the filename
             prefixlistbool = [p in [x[0] for x in fullpath.split(os.sep)[1:]] for p in prefixignore]
@@ -351,7 +380,6 @@ def clearFilesExcept(filetypes = ['py','txt','docx','xlsx']):
 
 def add_path(add_folder = "C:\\Users\\ngordon\\test"):
     '''temporarily adds path to the system PATH variable'''
-    import sys
     sys.path.append(add_folder)
 
 
@@ -407,26 +435,6 @@ def files_same(f1,f2):
     '''
     return filecmp.cmp(f1,f2)
     
-    
-def dirdiff(dir1, dir2):
-    '''
-    Here is a simplified example of using the subdirs attribute to search 
-    recursively through two directories to show common different files:
-        
-    dir1 = 'test1'
-    dir2 = 'test2'
-    '''
-    
-    print('----comparing directory {} and {}----'.format(dir1,dir2))
-    dcmp = filecmp.dircmp(dir1, dir2) 
-    #dcmp.report()
-    dcmp.report_full_closure()
-
-    # create html report for files that have changed    
-    for name in dcmp.diff_files:
-        print('created html diff report for {}'.format(name))
-        filediff('{}/{}'.format(dir1, name) , '{}/{}'.format(dir2, name))
-
 
 def string_to_bool(string):
     '''
@@ -479,10 +487,35 @@ def filediff(fromfile, tofile):
         f.write(diff)
 
 
+def dirdiff(dir1, dir2):
+    '''
+    Here is a simplified example of using the subdirs attribute to search 
+    recursively through two directories to show common different files:
+        
+    dir1 = './tutorial/test1' 
+    dir2 = './tutorial/test2'
+    
+    
+    './tutorial/test1' './tutorial/test2'
+    '''
+    
+    print('----comparing directory {} and {}----'.format(dir1,dir2))
+    dcmp = filecmp.dircmp(dir1, dir2) 
+    print(dcmp.report())
+    dcmp.report_full_closure()
+
+    # create html report for files that have changed    
+    for name in dcmp.diff_files:
+        try:
+            print('created html diff report for {}'.format(name))
+            filediff('{}/{}'.format(dir1, name) , '{}/{}'.format(dir2, name))
+        except:
+            print('failed html diff report for {}'.format(name))
 
 if __name__=='__main__':
    '''
 	executed if module is not imported
-   '''
+   dirdiff(sys.argv[1], sys.argv[2])   
+    '''
    
    main()
