@@ -11,11 +11,7 @@ import os, sys,filecmp, difflib
 ### uncomment if you want to use the graphic user interface
 #from gooey import Gooey
 #@Gooey 
-def main():
-    
 
-        dirdiff(sys.argv[1], sys.argv[2])        
-        
     
 def dirdiff(dir1, dir2):
     '''
@@ -51,25 +47,39 @@ def filediff(fromfile, tofile):
     html:     generates side by side comparison with change highlights.
     
     """
-    
-    with open(fromfile) as ff:
-        fromlines = ff.readlines()
-    with open(tofile) as tf:
-        tolines = tf.readlines()
+    try:
 
-    diff = difflib.HtmlDiff().make_file(fromlines,tolines,fromfile,tofile,context=True,numlines=2)
+        with open(fromfile) as ff:
+            fromlines = ff.readlines()
+        with open(tofile) as tf:
+            tolines = tf.readlines()
 
-    # write new file list with hash
-    newfilename = os.path.basename(fromfile) + '_' + os.path.basename(tofile) + '.html'
-    with open(newfilename, 'w') as f:
-        print('created {}'.format(newfilename))
-        f.write(diff)
+        diff = difflib.HtmlDiff().make_file(fromlines,tolines,fromfile,tofile,context=True,numlines=2)
 
+        # write new file list with hash
+        newfilename = os.path.basename(fromfile) + '_' + os.path.basename(tofile) + '.html'
+        with open(newfilename, 'w') as f:
+            print('created {}'.format(newfilename))
+            f.write(diff)
+    except:
+        filessame = filecmp.cmp(fromfile,tofile)
+        if filessame:
+            print('the files are the same')
+        else:
+            print('the files are different')
 
 
 if __name__=='__main__':
-   '''
-	executed if module is not imported
-   '''
+    '''
+    executed if module is not imported
+    '''
    
-   main()
+    f1 = sys.argv[1]
+    f2 = sys.argv[2]
+   
+    if os.path.isfile(f1) and os.path.isfile(f2):
+        filediff(f1, f2) 
+    elif os.path.isdir(f1) and os.path.isdir(f2):
+        dirdiff(f1, f2)  
+    else:
+        print('both not files or directories, exiting') 
