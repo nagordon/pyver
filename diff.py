@@ -41,7 +41,7 @@ def dirdiff(dir1, dir2):
 
 
 
-def filediff(fromfile, tofile):
+def filediff(fromfile, tofile, addconext = False, contextlines=0):
     """
     Command line interface to difflib.py providing diffs in four formats:
     html:     generates side by side comparison with change highlights.

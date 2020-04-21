@@ -465,26 +465,33 @@ def show_file_info(filename):
     print('\tModified:', time.ctime(stat_info.st_mtime))
 
 
-def filediff(fromfile, tofile):
+def filediff(fromfile, tofile, addconext = False, contextlines=0):
     """
     Command line interface to difflib.py providing diffs in four formats:
-
     html:     generates side by side comparison with change highlights.
     
     """
-    
-    with open(fromfile) as ff:
-        fromlines = ff.readlines()
-    with open(tofile) as tf:
-        tolines = tf.readlines()
+    try:
 
-    diff = difflib.HtmlDiff().make_file(fromlines,tolines,fromfile,tofile,context=True,numlines=2)
+        with open(fromfile) as ff:
+            fromlines = ff.readlines()
+        with open(tofile) as tf:
+            tolines = tf.readlines()
 
-    # write new file list with hash
-    newfilename = os.path.basename(fromfile) + '_' + os.path.basename(tofile) + '.html'
-    with open(newfilename, 'w') as f:
-        print('created {}'.format(newfilename))
-        f.write(diff)
+        diff = difflib.HtmlDiff().make_file(fromlines,tolines,fromfile,tofile,context=True,numlines=2)
+
+        # write new file list with hash
+        newfilename = os.path.basename(fromfile) + '_' + os.path.basename(tofile) + '.html'
+        with open(newfilename, 'w') as f:
+            print('created {}'.format(newfilename))
+            f.write(diff)
+    except:
+        filessame = filecmp.cmp(fromfile,tofile)
+        if filessame:
+            print('the files are the same')
+        else:
+            print('the files are different')
+
 
 
 def dirdiff(dir1, dir2):
