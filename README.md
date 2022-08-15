@@ -4,16 +4,17 @@ Version control for dummies
 https://github.com/nagordon/pyver
 
 ## TODO  
+* [ ] File locking or read only attributing with [py-filelock](https://github.com/benediktschmitt/py-filelock) or [fasteners](https://github.com/harlowja/fasteners) or [portalocker](https://github.com/WoLpH/portalocker) or [Filelock](https://github.com/dmfrey/FileLock)
+* [ ] add file monitoring with [watchdog](https://pythonhosted.org/watchdog/quickstart.html)
+* [ ] add html link page simialr to tree function
+* [x] added interactive files and directory selection for compare
 * [x] Append revision string (eg -00, -01, etc) on the end of an archive
 * [x] Clean up file view in log, make new lines?
-* [ ] File locking or read only attributing with [py-filelock](https://github.com/benediktschmitt/py-filelock) or [fasteners](https://github.com/harlowja/fasteners) or [portalocker](https://github.com/WoLpH/portalocker) or [Filelock](https://github.com/dmfrey/FileLock)
 * [x] Create GUI - https://github.com/chriskiehl/Gooey
 * [x] create file hash key
 * [x] added file compare tool
 * [x] added directory compare tool
 * [x] added optional file character name prefixes to ignore
-* [ ] add file monitoring with [watchdog](https://pythonhosted.org/watchdog/quickstart.html)
-* [ ] add html link page simialr to tree function
 
 ## Why pyver?  
 The motivation behind pyver, which is to creating a version control method which is very, very simple to track the history of files. The work-flow of pyver is something I do anyway when working on something simple that uses binary files, especially ones that are linked through the software that is required to read them (eg CAD, Excel, etc). In the past I would create multiple version directories and copy the entire contents of my in-progress files in it that I want to preserve the history. The issue with this is that when file names are changed, it can break links to dependent files, so keeping a file identical is important for tracking files. It was also a goal to use this tool over a network drive where multiple users can archive files as they wish.  
@@ -50,14 +51,14 @@ python -m pyver --help
 ```  
 
 ```bash
-usage: pyver.py [-h] [-u USER] [-f FILES] [-c COMMENT] [-z ZIP] [-d DUPLICATE]
-                [-p PREFIXIGNORE]
-                {log,tree,filediff,dirdiff} ...
+
+usage: pyver.py [-h] [-u USER] [-f FILES] [-c COMMENT] [-z ZIP] [-d DUPLICATE] [-p PREFIXIGNORE]
+                {log,tree,filediff,dirdiff,find_duplicates} ...
 
 | pyver | version: 0.3 | author: Neal Gordon |
 
 positional arguments:
-  {log,tree,filediff,dirdiff}
+  {log,tree,filediff,dirdiff,find_duplicates}
     log                 prints pyver logs
                         Example--$ python -m pyver log
     tree                print file tree
@@ -70,6 +71,13 @@ positional arguments:
                         of the differences of all
                         ascii text files in a directory
                         EXAMPLE--$ python -m pyver dirdiff
+    find_duplicates     warning-this will move files
+                        in the first directory selected
+                        Searches for duplicate files
+                        by name only in second directory.
+                        Moves all duplicates found in the
+                        first directory to a subfolder
+                        named duplicates.
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -109,6 +117,7 @@ pydoc pyver
 ```
 
 ```bash
+
 Help on module pyver:
 
 NAME
@@ -117,13 +126,21 @@ NAME
 DESCRIPTION
     https://github.com/nagordon/pyver
 
+    other references
     https://docs.python.org/3/library/argparse.html#the-parse-args-method
+    https://docs.python.org/3/library/difflib.html
+    https://docs.python.org/3/library/filecmp.html#module-filecmp
+    https://docs.python.org/3/library/filecmp.html#the-dircmp-class
 
-    https://docs.python.org/3.8/library/filecmp.html
+
+    also see - https://github.com/yebrahim/pydiff
 
 FUNCTIONS
     add_path(add_folder='C:\\Users\\ngordon\\test')
         temporarily adds path to the system PATH variable
+
+    all_exts()
+        recursively finds files match match all criteria of a specific fiel extension
 
     all_files(rootDir='.', wildcard='.', prefixignore='.~')
         returns all files and directories that do not start with prefixignore
@@ -156,7 +173,7 @@ FUNCTIONS
         targetfile = 'test1.xlsx'
         targetfolder = 'file_compare'
 
-    dirdiff(dir1, dir2)
+    dirdiff(dir1, dir2, filereport=True)
         Here is a simplified example of using the subdirs attribute to search
         recursively through two directories to show common different files:
 
@@ -166,18 +183,39 @@ FUNCTIONS
 
         './tutorial/test1' './tutorial/test2'
 
+    dirdiff_interactive()
+        creates html file with file diff results
+        the file is created in the first directory selected
+
     file_mtime(path)
         returns the file modified time
 
-    filediff(fromfile, tofile)
+    filediff(file1, file2, addconext=False, contextlines=0)
         Command line interface to difflib.py providing diffs in four formats:
-
         html:     generates side by side comparison with change highlights.
+
+    filediff_interactive()
+        creates html file with file diff results
+        the file is created in the first directory selected
 
     files_same(f1, f2)
         https://docs.python.org/3.6/library/filecmp.html
 
         returns True if the files are the same
+
+    find_dupe_files_in_directory_interactive(movedupefiles=False)
+        searches for duplicate files by name only in second directory. Moves all
+           duplicates found in the first directory to a subfolder named duplicates.
+
+        1) select first directory to find duplicates in second directory
+        3) find all files in the first directory and not in the second
+        5) move all duplicate files from the first directory into a subdirectory 'duplicate'
+
+
+
+        primary application. dir1 is a photo directory,
+            dir2 is your exsiting master photo library with many more photos than dir1.
+            you want to merge dir1 into dir2 but not any duplicates
 
     find_files_recusive_glob(ext='png')
 
@@ -205,6 +243,10 @@ FUNCTIONS
         main function of pyver. copys files from the current directory and creates an archive.
         comma-delimmeted log file pyver.log keeps a record of the file changes
 
+    select_directory_dialog(titletext='choose directory', mycwd='.')
+
+    select_genericfile_dialog(mytitle='Select your file', mycwd='.', myfiletypes=[('all files', '*')])
+
     show_file_info(filename)
         prints file info such as time created
 
@@ -221,7 +263,9 @@ AUTHOR
     Neal Gordon
 
 FILE
-    c:\users\nagordon\bin\pyver\pyver.py
+    d:\neal\github\pyver\pyver.py
+
+
 ```
 
 ## Run from the command line
@@ -294,8 +338,11 @@ test2\test7.xlsx is an archived unchanged file, skipping new archive
 ## file tools
 
 ### directory diffs
+
+updated to be interactive dialog to select, not just command line
+
 ```bash
-$ python -m pyver dirdiff test1 test2
+$ python -m pyver dirdiff
 ```
 
 ```bash

@@ -4,21 +4,32 @@ Version control for dummies
 
 https://github.com/nagordon/pyver
 
+other references
 https://docs.python.org/3/library/argparse.html#the-parse-args-method
+https://docs.python.org/3/library/difflib.html
+https://docs.python.org/3/library/filecmp.html#module-filecmp
+https://docs.python.org/3/library/filecmp.html#the-dircmp-class
 
-https://docs.python.org/3.8/library/filecmp.html
+
+also see - https://github.com/yebrahim/pydiff
+
 """
 
 __author__ = 'Neal Gordon'
 __version__ = '0.3'
 
-import os, shutil, time, datetime, sys, argparse, glob, hashlib, filecmp
+import os, shutil, time, datetime, sys, argparse, hashlib, filecmp
+from glob import glob
 import win32com.client, difflib
+import pathlib
 from distutils.util import strtobool
 from datetime import timezone
 import json
 import natsort
 # conda install -c anaconda natsort
+
+import tkinter
+import tkinter.filedialog
 
 #conda install pyinstaller
 
@@ -55,9 +66,9 @@ def main():
                                         help='creates html file of the\n'\
                                         'differences of an ascii text file\n'
                                         'EXAMPLE--$ python -m pyver filediff')
-    parser_filediff.set_defaults(func=filediff)  
-    parser_filediff.add_argument('d1')
-    parser_filediff.add_argument('d2')
+    parser_filediff.set_defaults(func=filediff_interactive)  
+    #parser_filediff.add_argument('d1')
+    #parser_filediff.add_argument('d2')
 
 
     parser_dirdiff = subparsers.add_parser('dirdiff',
@@ -65,9 +76,23 @@ def main():
                                             'of the differences of all \n'\
                                             'ascii text files in a directory\n'\
                                             'EXAMPLE--$ python -m pyver dirdiff')
-    parser_dirdiff.add_argument('d1')
-    parser_dirdiff.add_argument('d2')
-    parser_dirdiff.set_defaults(func=dirdiff)  
+    #parser_dirdiff.add_argument('d1')
+    #parser_dirdiff.add_argument('d2')
+    parser_dirdiff.set_defaults(func=dirdiff_interactive)  
+
+
+    parser_find_duplicates = subparsers.add_parser('find_duplicates',
+                                           help='warning-this will move files \n'\
+                                               'in the first directory selected \n'\
+                                                'Searches for duplicate files \n'\
+                                                'by name only in second directory. \n'\
+                                                'Moves all duplicates found in the \n'\
+                                                'first directory to a subfolder  \n'\
+                                                'named duplicates.\n')
+    #parser_dirdiff.add_argument('d1')
+    #parser_dirdiff.add_argument('d2')
+    parser_find_duplicates.set_defaults(func=find_dupe_files_in_directory_interactive)  
+    
 
     parser.set_defaults(treedir='.')
     # =========================================================================
@@ -131,12 +156,16 @@ def main():
     elif args.subparser_name == 'log':
         log()
     elif args.subparser_name == 'filediff':
-        filediff(sys.argv[2], sys.argv[3])
+        #filediff(sys.argv[2], sys.argv[3])
+        filediff_interactive()
     elif args.subparser_name == 'dirdiff':
-        print('args=',sys.argv)
-        dirdiff(sys.argv[2], sys.argv[3])    
+        #print('args=',sys.argv)
+        #dirdiff(sys.argv[2], sys.argv[3])    
+        dirdiff_interactive()  
     
-
+    elif args.subparser_name == 'find_duplicates':  
+        find_dupe_files_in_directory_interactive()  
+    
 #     parser.parse_args(['tree'])
 #    parser.parse_args(['tree','C:/Users/ngordon/bin/pyver'])
 #    #parser.parse_args(["dirdiff './tutorial/test2' './tutorial/test2'"])
@@ -329,6 +358,18 @@ def all_files2(ext='png', andcriteria=['.']):
     return natsort(myfiles)
 
 
+def all_exts():
+    '''
+    recursively finds files match match all criteria of a specific fiel extension
+    '''
+
+    # get all extensions
+    myexts = [pathlib.Path(p).suffix for p in glob('**/*', recursive=True)]
+
+    # remove duplicates
+    myexts = [ii for n,ii in enumerate(myexts) if ii not in myexts[:n]]
+    
+    return myexts
 
 def all_files(rootDir = '.', wildcard = '.', prefixignore = '.~'):
     '''
@@ -465,7 +506,47 @@ def show_file_info(filename):
     print('\tModified:', time.ctime(stat_info.st_mtime))
 
 
-def filediff(fromfile, tofile, addconext = False, contextlines=0):
+def select_directory_dialog(titletext='choose directory', mycwd = '.'):
+    root = tkinter.Tk()
+    root.withdraw()
+    root.lift()
+
+    mydir =  tkinter.filedialog.askdirectory(title=titletext, initialdir=mycwd)
+
+    if str(mydir) == '':
+        print('cancelled folder select, using current working directory')
+        #raise SystemExit
+        # make current directory the current directory
+        #mydir = pathlib.WindowsPath.cwd()
+        #os.chdir(mydir)
+        print("User cancelled directory selection, exiting")
+        sys.exit(1)
+    else:
+        print("selected directory = {}".format(mydir))
+        mydir = pathlib.WindowsPath(mydir)
+    return mydir
+
+
+def select_genericfile_dialog(mytitle="Select your file", mycwd = '.',
+                               myfiletypes = [("all files", "*")]):
+    
+
+    root = tkinter.Tk()
+    root.attributes('-topmost',True)    
+    root.withdraw()
+    root.lift()
+    myfile =  tkinter.filedialog.askopenfilename(initialdir = mycwd,
+                                                title = mytitle,
+                                                filetypes = myfiletypes)
+    if str(myfile) == '':
+        print("User cancelled file select, exiting")
+        sys.exit(1)
+    else:
+        print("selected file = {}".format(myfile))
+        myfile = pathlib.WindowsPath(myfile)
+    return myfile
+
+def filediff(file1, file2, addconext = False, contextlines=0):
     """
     Command line interface to difflib.py providing diffs in four formats:
     html:     generates side by side comparison with change highlights.
@@ -473,28 +554,41 @@ def filediff(fromfile, tofile, addconext = False, contextlines=0):
     """
     try:
 
-        with open(fromfile) as ff:
+        with open(file1) as ff:
             fromlines = ff.readlines()
-        with open(tofile) as tf:
+        with open(file2) as tf:
             tolines = tf.readlines()
 
-        diff = difflib.HtmlDiff().make_file(fromlines,tolines,fromfile,tofile,context=True,numlines=2)
+        diff = difflib.HtmlDiff().make_file(fromlines,tolines,file1,file2,context=True,numlines=2)
 
         # write new file list with hash
-        newfilename = os.path.basename(fromfile) + '_' + os.path.basename(tofile) + '.html'
+        newfilename = file1.parent.joinpath(file1.name + '_' + file2.name + '.html')
+        
         with open(newfilename, 'w') as f:
             print('created {}'.format(newfilename))
             f.write(diff)
     except:
-        filessame = filecmp.cmp(fromfile,tofile)
+        filessame = filecmp.cmp(file1,file2)
         if filessame:
             print('the files are the same')
-        else:
+        else: 
             print('the files are different')
 
+def filediff_interactive():
+    """
+    creates html file with file diff results
+    the file is created in the first directory selected
+    
+    """
+    
+    file1 = select_genericfile_dialog("Select the first text file for diff")
+    
+    file2 = select_genericfile_dialog("Select the second text file for diff", str(file1.parents[0]))
+    
+    filediff(file1, file2)
+    
 
-
-def dirdiff(dir1, dir2):
+def dirdiff(dir1, dir2, filereport=True):
     '''
     Here is a simplified example of using the subdirs attribute to search 
     recursively through two directories to show common different files:
@@ -508,16 +602,82 @@ def dirdiff(dir1, dir2):
     
     print('----comparing directory {} and {}----'.format(dir1,dir2))
     dcmp = filecmp.dircmp(dir1, dir2) 
-    print(dcmp.report())
+    #print(dcmp.report())
     dcmp.report_full_closure()
 
-    # create html report for files that have changed    
-    for name in dcmp.diff_files:
-        try:
-            print('created html diff report for {}'.format(name))
-            filediff('{}/{}'.format(dir1, name) , '{}/{}'.format(dir2, name))
-        except:
-            print('failed html diff report for {}'.format(name))
+    if filereport:
+        # create html report for files that have changed    
+        for name in dcmp.diff_files:
+            try:
+                print('created html diff report for {}'.format(name))
+                filediff('{}/{}'.format(dir1, name) , '{}/{}'.format(dir2, name))
+            except:
+                print('failed html diff report for {}'.format(name))
+                
+
+def dirdiff_interactive():
+    """
+    creates html file with file diff results
+    the file is created in the first directory selected
+    
+    """
+    
+    dir1 = select_directory_dialog("Select the first directory file for diff")
+    dir2 = select_directory_dialog("Select the second directory for diff", str(dir1.parents[0]))
+    dirdiff(dir1, dir2)
+    
+
+def find_dupe_files_in_directory_interactive(movedupefiles=False):
+    """
+    
+    searches for duplicate files by name only in second directory. Moves all 
+       duplicates found in the first directory to a subfolder named duplicates.
+    
+    1) select first directory to find duplicates in second directory 
+    3) find all files in the first directory and not in the second
+    5) move all duplicate files from the first directory into a subdirectory 'duplicate'
+
+    
+    
+    primary application. dir1 is a photo directory, 
+        dir2 is your exsiting master photo library with many more photos than dir1. 
+        you want to merge dir1 into dir2 but not any duplicates
+    
+    """
+    
+    dir1 = select_directory_dialog("Select the first directory to find duplicates")
+        
+    # start from directory up one level
+    dir2 = select_directory_dialog("Select the second directory for duplicate reference", str(dir1.parents[0]) )
+    
+    # list(dir1.rglob("**/*"))
+    dir1files = glob( str( dir1.joinpath('**/*') ) , recursive=True)
+    dir1files = [pathlib.Path(f) for f in dir1files]
+    
+    dir2files = glob( str( dir2.joinpath('**/*') ) , recursive=True)
+    #dir2files = [pathlib.Path(f) for f in dir2files]
+    
+    dir2files_str = ','.join(dir2files)
+    
+    dir1filesnotdupe = []
+    
+    dupedir = dir1files[0].parent.joinpath('duplicates')
+    if not dupedir.exists():
+        dupedir.mkdir()
+    
+    for f in dir1files:
+        # f = dir1files[0]
+        #[f for d in dir2files if f.name in str(d)]
+        if f.name not in dir2files_str:
+            dir1filesnotdupe.append(f)
+            print(f'not duplicate - {str(f)}')
+        else:
+            if movedupefiles:
+                # move file to duplicates 
+                f.rename( dupedir.joinpath(f.name) )
+    
+    # dir1filesnotdupe
+    return 
 
 if __name__=='__main__':
    '''
